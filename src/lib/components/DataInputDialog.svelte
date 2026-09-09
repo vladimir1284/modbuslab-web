@@ -59,11 +59,19 @@
               <span class="text-xs font-mono w-16">Octeto {i + 1}:</span>
               <input
                 type="text"
-                maxlength="8"
+                maxlength="12"
                 value={binInputs[i]}
+                onfocus={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  setTimeout(() => target.select(), 0);
+                }}
                 oninput={(e) => {
                   const target = e.target as HTMLInputElement;
-                  binInputs[i] = target.value.replace(/[^01]/g, '').slice(0, 8);
+                  let clean = target.value.replace(/[^01]/g, '');
+                  while (clean.length > 8 && clean.startsWith('0')) {
+                    clean = clean.slice(1);
+                  }
+                  binInputs[i] = clean.slice(0, 8);
                 }}
                 class="flex-1 px-2 py-1 text-sm font-mono border rounded border-gray-300 focus:ring-2 focus:ring-indigo-500"
                 placeholder="10110010"

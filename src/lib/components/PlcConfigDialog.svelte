@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PlcConfig } from '../devices/plc-masterk.js';
+  import HexInput from './HexInput.svelte';
 
   let {
     open = $bindable(false),
@@ -13,8 +14,8 @@
 
   let inputCount = $state(18);
   let outputCount = $state(12);
-  let inputBaseHex = $state('0000');
-  let outputBaseHex = $state('0040');
+  let inputBase = $state(0x0000);
+  let outputBase = $state(0x0040);
   let ledColor = $state<'red' | 'green'>('red');
   let runProgram = $state(false);
 
@@ -22,8 +23,8 @@
     if (open) {
       inputCount = config.inputCount;
       outputCount = config.outputCount;
-      inputBaseHex = config.inputBase.toString(16).padStart(4, '0').toUpperCase();
-      outputBaseHex = config.outputBase.toString(16).padStart(4, '0').toUpperCase();
+      inputBase = config.inputBase;
+      outputBase = config.outputBase;
       ledColor = config.ledColor;
       runProgram = config.runProgram;
     }
@@ -34,8 +35,8 @@
       ...config,
       inputCount,
       outputCount,
-      inputBase: parseInt(inputBaseHex, 16) || 0,
-      outputBase: parseInt(outputBaseHex, 16) || 0,
+      inputBase,
+      outputBase,
       ledColor,
       runProgram
     });
@@ -49,30 +50,28 @@
       <h3 class="text-lg font-bold text-gray-800">Configuración del PLC Virtual</h3>
 
       <div class="space-y-3 text-sm">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3 items-end">
           <div>
-            <label for="plc-inputs-count" class="font-semibold text-gray-700 block text-xs">Cant. Entradas</label>
+            <label for="plc-inputs-count" class="font-semibold text-gray-700 block text-xs mb-1">Cant. Entradas</label>
             <input id="plc-inputs-count" type="number" bind:value={inputCount} min="1" max="64" class="w-full border px-2 py-1 rounded" />
           </div>
           <div>
-            <label for="plc-inputs-base" class="font-semibold text-gray-700 block text-xs">Dir. Base Entradas (Hex)</label>
-            <input id="plc-inputs-base" type="text" bind:value={inputBaseHex} maxlength="4" class="w-full border px-2 py-1 rounded font-mono" />
+            <HexInput id="plc-inputs-base" label="Dir. Base Entradas (Hex)" width={4} bind:value={inputBase} />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3 items-end">
           <div>
-            <label for="plc-outputs-count" class="font-semibold text-gray-700 block text-xs">Cant. Salidas</label>
+            <label for="plc-outputs-count" class="font-semibold text-gray-700 block text-xs mb-1">Cant. Salidas</label>
             <input id="plc-outputs-count" type="number" bind:value={outputCount} min="1" max="64" class="w-full border px-2 py-1 rounded" />
           </div>
           <div>
-            <label for="plc-outputs-base" class="font-semibold text-gray-700 block text-xs">Dir. Base Salidas (Hex)</label>
-            <input id="plc-outputs-base" type="text" bind:value={outputBaseHex} maxlength="4" class="w-full border px-2 py-1 rounded font-mono" />
+            <HexInput id="plc-outputs-base" label="Dir. Base Salidas (Hex)" width={4} bind:value={outputBase} />
           </div>
         </div>
 
         <div>
-          <label for="plc-led-color" class="font-semibold text-gray-700 block text-xs">Color de LEDs</label>
+          <label for="plc-led-color" class="font-semibold text-gray-700 block text-xs mb-1">Color de LEDs</label>
           <select id="plc-led-color" bind:value={ledColor} class="w-full border px-2 py-1 rounded">
             <option value="red">Rojo</option>
             <option value="green">Verde</option>
