@@ -1,6 +1,9 @@
 import { PhysicalProcess } from './process.js';
 import type { SlaveHandler } from './slave.js';
 
+const PHYSICAL_CT = 25;
+const PHYSICAL_VT = 1;
+
 export class AnalyzerWm14 implements SlaveHandler {
   readonly station = 1;
   private ram = new Uint16Array(0x300); // 0x000..0x2FF
@@ -41,9 +44,10 @@ export class AnalyzerWm14 implements SlaveHandler {
 
   updateRamFromProcess(nowMs: number): void {
     const st = this.process.state;
-    const vt10 = this.getEepromWord(0x1082);
-    const ct = this.getEepromWord(0x1084);
-    const vt = vt10 / 10.0;
+    // Fixed physical CT/VT wiring (§5.2) — Ct_ratio/Vt_ratio in EEPROM only affect
+    // client-side decode, never the raw register itself.
+    const vt = PHYSICAL_VT;
+    const ct = PHYSICAL_CT;
 
     // Convert engineering values to raw register values (which are multiplied by CT/VT in engineering calculation)
     // Formula inversion:

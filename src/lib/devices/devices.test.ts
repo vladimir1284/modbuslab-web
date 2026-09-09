@@ -64,6 +64,29 @@ describe('Analyzer Virtual Carlo Gavazzi WM14', () => {
     expect(res).toBe(0x02);
   });
 
+  it('keeps the raw current register unchanged after Ct_ratio is rewritten (§5.2 rescaling task)', () => {
+    const process = new PhysicalProcess();
+    process.state.V = [220, 220, 220];
+    process.state.I = [5, 5, 5];
+    const analyzer = new AnalyzerWm14(process);
+    analyzer.updateRamFromProcess(Date.now());
+
+    const before = analyzer.readHoldingRegisters(0x0282, 1) as Uint8Array;
+    const beforeRaw = new DataView(before.buffer, before.byteOffset, before.byteLength).getUint16(2, false);
+
+    analyzer.writeSingleRegister(0x1084, 0x0032); // Ct_ratio = 50
+    analyzer.updateRamFromProcess(Date.now());
+
+    const after = analyzer.readHoldingRegisters(0x0282, 1) as Uint8Array;
+    const afterRaw = new DataView(after.buffer, after.byteOffset, after.byteLength).getUint16(2, false);
+
+    expect(afterRaw).toBe(beforeRaw);
+
+    const decodedWithOldCt = (beforeRaw / 1000) * 25;
+    const decodedWithNewCt = (afterRaw / 1000) * 50;
+    expect(decodedWithNewCt).toBeCloseTo(decodedWithOldCt * 2, 5);
+  });
+
   it('handles station address change correctly', () => {
     const process = new PhysicalProcess();
     const analyzer = new AnalyzerWm14(process);

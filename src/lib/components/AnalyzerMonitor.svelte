@@ -2,18 +2,23 @@
   import AnalogInstrument from './AnalogInstrument.svelte';
   import DigitalInstrument from './DigitalInstrument.svelte';
   import LoadBank from './LoadBank.svelte';
-  import type { ProcessState } from '../devices/process.js';
+  import type { AnalyzerReadings } from '../lab/decode.js';
+
+  const EMPTY_READINGS: AnalyzerReadings = {
+    V: [220, 220, 220],
+    I: [0, 0, 0],
+    W: [0, 0, 0],
+    VAR: [0, 0, 0],
+    PF: [1, 1, 1],
+    VLLsum: 0,
+    ANeutral: 0,
+    WSum: 0,
+    VARSum: 0,
+    PFSum: 1
+  };
 
   let {
-    processState = {
-      V: [220, 220, 220],
-      I: [0, 0, 0],
-      phi: [0, 0, 0],
-      f: 60.0,
-      kWh: 0,
-      varh: 0,
-      hourmeterHours: 0
-    } as ProcessState,
+    readings = EMPTY_READINGS,
     vtRatio = 1.0,
     ctRatio = 25,
     stationNumber = 1,
@@ -23,7 +28,7 @@
     onToggleMonitor,
     onToggleLoad
   }: {
-    processState: ProcessState;
+    readings: AnalyzerReadings;
     vtRatio: number;
     ctRatio: number;
     stationNumber: number;
@@ -38,23 +43,6 @@
 
   let maxVScale = $state(300);
   let maxIScale = $state(150);
-
-  let p1 = $derived(processState.V[0] * processState.I[0] * Math.cos(processState.phi[0]));
-  let p2 = $derived(processState.V[1] * processState.I[1] * Math.cos(processState.phi[1]));
-  let p3 = $derived(processState.V[2] * processState.I[2] * Math.cos(processState.phi[2]));
-
-  let q1 = $derived(processState.V[0] * processState.I[0] * Math.sin(processState.phi[0]));
-  let q2 = $derived(processState.V[1] * processState.I[1] * Math.sin(processState.phi[1]));
-  let q3 = $derived(processState.V[2] * processState.I[2] * Math.sin(processState.phi[2]));
-
-  let pf1 = $derived(Math.cos(processState.phi[0]));
-  let pf2 = $derived(Math.cos(processState.phi[1]));
-  let pf3 = $derived(Math.cos(processState.phi[2]));
-
-  let pSum = $derived(p1 + p2 + p3);
-  let qSum = $derived(q1 + q2 + q3);
-  let pfSum = $derived(Math.cos(Math.atan2(qSum, pSum)));
-  let vSumLL = $derived((processState.V[0] + processState.V[1] + processState.V[2]) / 3 * Math.sqrt(3));
 </script>
 
 <div class="bg-white p-4 rounded-lg shadow border border-gray-200 space-y-4">
@@ -102,7 +90,7 @@
     {#if activeTab === 'sys'}
       <AnalogInstrument
         label="Tensión de Línea"
-        value={vSumLL}
+        value={readings.VLLsum}
         unit="V"
         bind:maxScale={maxVScale}
         revealedScaleLabel={`VT = ${vtRatio.toFixed(1)} (leído 1082h)`}
@@ -110,19 +98,19 @@
       />
       <AnalogInstrument
         label="Corriente Neutro"
-        value={0.0}
+        value={readings.ANeutral}
         unit="A"
         bind:maxScale={maxIScale}
         revealedScaleLabel={`CT = ${ctRatio} (leído 1084h)`}
         revealed={revealedCt}
       />
-      <DigitalInstrument label="Potencia Activa ∑" value={pSum} unit="W" />
-      <DigitalInstrument label="Potencia Reactiva ∑" value={qSum} unit="VAR" />
-      <DigitalInstrument label="Factor de Potencia ∑" value={pfSum} unit="" precision={2} />
+      <DigitalInstrument label="Potencia Activa ∑" value={readings.WSum} unit="W" />
+      <DigitalInstrument label="Potencia Reactiva ∑" value={readings.VARSum} unit="VAR" />
+      <DigitalInstrument label="Factor de Potencia ∑" value={readings.PFSum} unit="" precision={2} />
     {:else if activeTab === 'l1'}
       <AnalogInstrument
         label="Tensión V L1-N"
-        value={processState.V[0]}
+        value={readings.V[0]}
         unit="V"
         bind:maxScale={maxVScale}
         revealedScaleLabel={`VT = ${vtRatio.toFixed(1)} (leído 1082h)`}
@@ -130,19 +118,19 @@
       />
       <AnalogInstrument
         label="Corriente A L1"
-        value={processState.I[0]}
+        value={readings.I[0]}
         unit="A"
         bind:maxScale={maxIScale}
         revealedScaleLabel={`CT = ${ctRatio} (leído 1084h)`}
         revealed={revealedCt}
       />
-      <DigitalInstrument label="Potencia W L1" value={p1} unit="W" />
-      <DigitalInstrument label="Potencia var L1" value={q1} unit="VAR" />
-      <DigitalInstrument label="Factor de Potencia L1" value={pf1} unit="" precision={2} />
+      <DigitalInstrument label="Potencia W L1" value={readings.W[0]} unit="W" />
+      <DigitalInstrument label="Potencia var L1" value={readings.VAR[0]} unit="VAR" />
+      <DigitalInstrument label="Factor de Potencia L1" value={readings.PF[0]} unit="" precision={2} />
     {:else if activeTab === 'l2'}
       <AnalogInstrument
         label="Tensión V L2-N"
-        value={processState.V[1]}
+        value={readings.V[1]}
         unit="V"
         bind:maxScale={maxVScale}
         revealedScaleLabel={`VT = ${vtRatio.toFixed(1)} (leído 1082h)`}
@@ -150,19 +138,19 @@
       />
       <AnalogInstrument
         label="Corriente A L2"
-        value={processState.I[1]}
+        value={readings.I[1]}
         unit="A"
         bind:maxScale={maxIScale}
         revealedScaleLabel={`CT = ${ctRatio} (leído 1084h)`}
         revealed={revealedCt}
       />
-      <DigitalInstrument label="Potencia W L2" value={p2} unit="W" />
-      <DigitalInstrument label="Potencia var L2" value={q2} unit="VAR" />
-      <DigitalInstrument label="Factor de Potencia L2" value={pf2} unit="" precision={2} />
+      <DigitalInstrument label="Potencia W L2" value={readings.W[1]} unit="W" />
+      <DigitalInstrument label="Potencia var L2" value={readings.VAR[1]} unit="VAR" />
+      <DigitalInstrument label="Factor de Potencia L2" value={readings.PF[1]} unit="" precision={2} />
     {:else if activeTab === 'l3'}
       <AnalogInstrument
         label="Tensión V L3-N"
-        value={processState.V[2]}
+        value={readings.V[2]}
         unit="V"
         bind:maxScale={maxVScale}
         revealedScaleLabel={`VT = ${vtRatio.toFixed(1)} (leído 1082h)`}
@@ -170,15 +158,15 @@
       />
       <AnalogInstrument
         label="Corriente A L3"
-        value={processState.I[2]}
+        value={readings.I[2]}
         unit="A"
         bind:maxScale={maxIScale}
         revealedScaleLabel={`CT = ${ctRatio} (leído 1084h)`}
         revealed={revealedCt}
       />
-      <DigitalInstrument label="Potencia W L3" value={p3} unit="W" />
-      <DigitalInstrument label="Potencia var L3" value={q3} unit="VAR" />
-      <DigitalInstrument label="Factor de Potencia L3" value={pf3} unit="" precision={2} />
+      <DigitalInstrument label="Potencia W L3" value={readings.W[2]} unit="W" />
+      <DigitalInstrument label="Potencia var L3" value={readings.VAR[2]} unit="VAR" />
+      <DigitalInstrument label="Factor de Potencia L3" value={readings.PF[2]} unit="" precision={2} />
     {/if}
   </div>
 

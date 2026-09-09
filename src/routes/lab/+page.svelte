@@ -9,6 +9,7 @@
   import type { PlcConfig } from '$lib/devices/plc-masterk.js';
   import { clearSession, loadSession, saveSession } from '$lib/lab/log.js';
   import { buildTasksForVariant, evaluateTask10, evaluateTask8 } from '$lib/lab/tasks.js';
+  import { bytesToUint16Array, decodeAnalyzerBlocks, unpackBits, type AnalyzerReadings } from '$lib/lab/decode.js';
   import { getVariant } from '$lib/lab/variants.js';
   import { getCodec } from '$lib/modbus/codec.js';
   import { parsePdu } from '$lib/modbus/pdu.js';
@@ -48,14 +49,17 @@
     rules: []
   });
 
-  let analyzerState = $state({
-    V: [220, 220, 220] as [number, number, number],
-    I: [0, 0, 0] as [number, number, number],
-    phi: [0, 0, 0] as [number, number, number],
-    f: 60.0,
-    kWh: 12.4,
-    varh: 3.2,
-    hourmeterHours: 45.5
+  let analyzerReadings = $state<AnalyzerReadings>({
+    V: [220, 220, 220],
+    I: [0, 0, 0],
+    W: [0, 0, 0],
+    VAR: [0, 0, 0],
+    PF: [1, 1, 1],
+    VLLsum: 0,
+    ANeutral: 0,
+    WSum: 0,
+    VARSum: 0,
+    PFSum: 1
   });
   let vtRatio = $state(1.0);
   let ctRatio = $state(25);
@@ -70,7 +74,6 @@
   let client: DeviceClient | null = null;
   let plcMonitorInterval: any = null;
   let analyzerMonitorInterval: any = null;
-  let syncInterval: any = null;
 
   let exchangeCounter = 0;
 
@@ -105,29 +108,11 @@
         historyRegisters = sess.history.filter((x: any) => x.tab === 'registers');
       }
     }
-
-    // Periodically fetch device snapshot for UI rendering
-    syncInterval = setInterval(async () => {
-      if (!client) return;
-      try {
-        const snapRes = await client.snapshot();
-        if (snapRes.t === 'snapshot' && snapRes.data) {
-          const d = snapRes.data;
-          if (d.plcInputs) plcInputs = d.plcInputs;
-          if (d.plcOutputs) plcOutputs = d.plcOutputs;
-          if (d.analyzerState) analyzerState = d.analyzerState;
-          if (d.vtRatio) vtRatio = d.vtRatio;
-          if (d.ctRatio) ctRatio = d.ctRatio;
-          if (d.station) analyzerStation = d.station;
-        }
-      } catch {}
-    }, 200);
   });
 
   onDestroy(() => {
     if (plcMonitorInterval) clearInterval(plcMonitorInterval);
     if (analyzerMonitorInterval) clearInterval(analyzerMonitorInterval);
-    if (syncInterval) clearInterval(syncInterval);
     client?.terminate();
   });
 
@@ -155,8 +140,12 @@
     });
   }
 
-  async function sendModbusPdu(station: number, pdu: Uint8Array, origin: 'student' | 'monitor' = 'student') {
-    if (!client) return;
+  async function sendModbusPdu(
+    station: number,
+    pdu: Uint8Array,
+    origin: 'student' | 'monitor' = 'student'
+  ): Promise<Exchange | undefined> {
+    if (!client) return undefined;
     const curTab = activeTab;
     const codecName = curTab === 'bits' ? codecBits : codecRegisters;
     const timeout = curTab === 'bits' ? timeoutMsBits : timeoutMsRegisters;
@@ -223,17 +212,27 @@
       historyRegisters = [exchange, ...historyRegisters];
     }
     persist();
+    return exchange;
   }
 
   function togglePlcMonitor() {
     monitorPlcRunning = !monitorPlcRunning;
     if (monitorPlcRunning) {
-      plcMonitorInterval = setInterval(() => {
-        // Sondeo periódico PLC: fn 01 entradas y fn 01 salidas
-        const pduIn = new Uint8Array([1, 0, 0, 0, plcConfig.inputCount]);
-        sendModbusPdu(2, pduIn, 'monitor');
-        const pduOut = new Uint8Array([1, 0, plcConfig.outputBase, 0, plcConfig.outputCount]);
-        sendModbusPdu(2, pduOut, 'monitor');
+      plcMonitorInterval = setInterval(async () => {
+        // Sondeo periódico PLC: fn 01 entradas y fn 01 salidas (bases configurables)
+        const inAddr = plcConfig.inputBase;
+        const pduIn = new Uint8Array([1, (inAddr >> 8) & 0xff, inAddr & 0xff, 0, plcConfig.inputCount]);
+        const exIn = await sendModbusPdu(2, pduIn, 'monitor');
+        if (exIn?.ok && exIn.resPdu?.data) {
+          plcInputs = unpackBits(exIn.resPdu.data as Uint8Array, plcConfig.inputCount);
+        }
+
+        const outAddr = plcConfig.outputBase;
+        const pduOut = new Uint8Array([1, (outAddr >> 8) & 0xff, outAddr & 0xff, 0, plcConfig.outputCount]);
+        const exOut = await sendModbusPdu(2, pduOut, 'monitor');
+        if (exOut?.ok && exOut.resPdu?.data) {
+          plcOutputs = unpackBits(exOut.resPdu.data as Uint8Array, plcConfig.outputCount);
+        }
       }, 1000);
     } else {
       clearInterval(plcMonitorInterval);
@@ -244,16 +243,27 @@
   function toggleAnalyzerMonitor() {
     monitorAnalyzerRunning = !monitorAnalyzerRunning;
     if (monitorAnalyzerRunning) {
-      analyzerMonitorInterval = setInterval(() => {
+      analyzerMonitorInterval = setInterval(async () => {
         analyzerCycleCount++;
         // Sondeo periódico Analizador: 3 lecturas fn 04
-        sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0x80, 0, 12]), 'monitor');
-        sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0x98, 0, 12]), 'monitor');
-        sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0xb0, 0, 8]), 'monitor');
+        const ex1 = await sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0x80, 0, 12]), 'monitor');
+        const ex2 = await sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0x98, 0, 12]), 'monitor');
+        const ex3 = await sendModbusPdu(analyzerStation, new Uint8Array([4, 0x02, 0xb0, 0, 8]), 'monitor');
+        if (ex1?.ok && ex2?.ok && ex3?.ok && ex1.resPdu?.data && ex2.resPdu?.data && ex3.resPdu?.data) {
+          const block1 = bytesToUint16Array(ex1.resPdu.data as Uint8Array);
+          const block2 = bytesToUint16Array(ex2.resPdu.data as Uint8Array);
+          const block3 = bytesToUint16Array(ex3.resPdu.data as Uint8Array);
+          analyzerReadings = decodeAnalyzerBlocks(block1, block2, block3, ctRatio, vtRatio);
+        }
 
         // Cada 5 ciclos (5s), leer Vt_ratio y Ct_ratio
         if (analyzerCycleCount % 5 === 0) {
-          sendModbusPdu(analyzerStation, new Uint8Array([3, 0x10, 0x82, 0, 2]), 'monitor');
+          const exVtCt = await sendModbusPdu(analyzerStation, new Uint8Array([3, 0x10, 0x82, 0, 2]), 'monitor');
+          if (exVtCt?.ok && exVtCt.resPdu?.data) {
+            const regs = bytesToUint16Array(exVtCt.resPdu.data as Uint8Array);
+            if (regs[0] !== undefined) vtRatio = regs[0] / 10;
+            if (regs[1] !== undefined) ctRatio = regs[1];
+          }
         }
       }, 1000);
     } else {
@@ -369,7 +379,7 @@
         />
         <FrameConsole history={historyRegisters} />
         <AnalyzerMonitor
-          processState={analyzerState}
+          readings={analyzerReadings}
           vtRatio={vtRatio}
           ctRatio={ctRatio}
           stationNumber={analyzerStation}
