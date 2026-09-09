@@ -49,6 +49,7 @@ markdown_extensions:
 
 nav:
   - Inicio: index.md
+  - Manual del Usuario: manual/index.md
   - Orientaciones al Estudiante:
       - Guía del Laboratorio: orientaciones/index.md
       - Tabla de Variantes (1–44): orientaciones/variantes.md
