@@ -1,0 +1,61 @@
+site_name: ModbusLab - Laboratorio Virtual Modbus
+site_description: Documentación técnica y orientaciones para el estudiante del Laboratorio Virtual ModbusLab.
+site_author: ModbusLab
+site_url: https://modbuslab.pages.dev/
+
+theme:
+  name: material
+  language: es
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Inicio: index.md
+  - Orientaciones al Estudiante:
+      - Guía del Laboratorio: orientaciones/index.md
+      - Tabla de Variantes (1–44): orientaciones/variantes.md
+  - Especificación Técnica:
+      - Núcleo del Protocolo Modbus: especificacion/protocolo.md
+      - PLC Virtual (LS Master-K120S): especificacion/plc.md
+      - Analizador Virtual (WM14): especificacion/analizador.md
+      - Arquitectura del Sistema: especificacion/arquitectura.md
+  - Despliegue:
+      - Cloudflare Pages: despliegue/cloudflare.md

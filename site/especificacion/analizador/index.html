@@ -1,0 +1,1435 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="Documentación técnica y orientaciones para el estudiante del Laboratorio Virtual ModbusLab.">
+
+
+        <meta name="author" content="ModbusLab">
+
+
+        <link rel="canonical" href="https://modbuslab.pages.dev/especificacion/analizador/">
+
+
+        <link rel="prev" href="../plc/">
+
+
+        <link rel="next" href="../arquitectura/">
+
+
+
+
+
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+
+
+
+        <title>Analizador Virtual (WM14) - ModbusLab - Laboratorio Virtual Modbus</title>
+
+
+
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+
+
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#analizador-virtual-carlo-gavazzi-wm14-estacion-1" class="md-skip">
+          Saltar a contenido
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="ModbusLab - Laboratorio Virtual Modbus" class="md-header__button md-logo" aria-label="ModbusLab - Laboratorio Virtual Modbus" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ModbusLab - Laboratorio Virtual Modbus
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Analizador Virtual (WM14)
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+
+
+
+
+
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+
+
+
+
+
+
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+
+
+
+
+
+  Inicio
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+      <li class="md-tabs__item">
+        <a href="../../orientaciones/" class="md-tabs__link">
+
+
+
+  Orientaciones al Estudiante
+
+        </a>
+      </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../protocolo/" class="md-tabs__link">
+
+
+
+  Especificación Técnica
+
+        </a>
+      </li>
+
+
+
+
+
+
+
+
+
+
+
+      <li class="md-tabs__item">
+        <a href="../../despliegue/cloudflare/" class="md-tabs__link">
+
+
+
+  Despliegue
+
+        </a>
+      </li>
+
+
+
+
+    </ul>
+  </div>
+</nav>
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ModbusLab - Laboratorio Virtual Modbus" class="md-nav__button md-logo" aria-label="ModbusLab - Laboratorio Virtual Modbus" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ModbusLab - Laboratorio Virtual Modbus
+  </label>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Inicio
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+
+
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Orientaciones al Estudiante
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Orientaciones al Estudiante
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../orientaciones/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Guía del Laboratorio
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../orientaciones/variantes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Tabla de Variantes (1–44)
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+
+
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Especificación Técnica
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Especificación Técnica
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../protocolo/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Núcleo del Protocolo Modbus
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../plc/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    PLC Virtual (LS Master-K120S)
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Analizador Virtual (WM14)
+
+
+
+  </span>
+
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Analizador Virtual (WM14)
+
+
+
+  </span>
+
+
+
+      </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#direccionamiento-por-byte-regla-del-wm14" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        ⚠️ Direccionamiento por Byte (Regla del WM14)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#mapa-ram-de-medidas-0280h-02ceh" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        📊 Mapa RAM de Medidas (0280h – 02CEh)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#eeprom-de-parametros-1080h-108eh" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        ⚙️ EEPROM de Parámetros (1080h – 108Eh)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#formulas-de-conversion-a-magnitudes-fisicas" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        📐 Fórmulas de Conversión a Magnitudes Físicas
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#candado-de-seguridad-y-cambio-de-direccion" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        🔒 Candado de Seguridad y Cambio de Dirección
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="🔒 Candado de Seguridad y Cambio de Dirección">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#candado-de-programacion-opcional" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Candado de Programación (Opcional)
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#cambio-dinamico-de-direccion-108ch" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Cambio Dinámico de Dirección (108Ch)
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../arquitectura/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Arquitectura del Sistema
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+
+
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Despliegue
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Despliegue
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../despliegue/cloudflare/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Cloudflare Pages
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#direccionamiento-por-byte-regla-del-wm14" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        ⚠️ Direccionamiento por Byte (Regla del WM14)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#mapa-ram-de-medidas-0280h-02ceh" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        📊 Mapa RAM de Medidas (0280h – 02CEh)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#eeprom-de-parametros-1080h-108eh" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        ⚙️ EEPROM de Parámetros (1080h – 108Eh)
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#formulas-de-conversion-a-magnitudes-fisicas" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        📐 Fórmulas de Conversión a Magnitudes Físicas
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#candado-de-seguridad-y-cambio-de-direccion" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        🔒 Candado de Seguridad y Cambio de Dirección
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="🔒 Candado de Seguridad y Cambio de Dirección">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#candado-de-programacion-opcional" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Candado de Programación (Opcional)
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#cambio-dinamico-de-direccion-108ch" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Cambio Dinámico de Dirección (108Ch)
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+<h1 id="analizador-virtual-carlo-gavazzi-wm14-estacion-1">Analizador Virtual — Carlo Gavazzi WM14 (Estación 1)</h1>
+<p>El <strong>Analizador de Redes Virtual</strong> simula un instrumento multifunción <strong>Carlo Gavazzi WM14</strong> que responde inicialmente en la <strong>Estación 1</strong>.</p>
+<hr />
+<h2 id="direccionamiento-por-byte-regla-del-wm14">⚠️ Direccionamiento por Byte (Regla del WM14)</h2>
+<p>El campo de dirección en los mensajes Modbus destinados al WM14 es una <strong>dirección de byte</strong>.</p>
+<ul>
+<li><strong>Cada registro de 16 bits ocupa 2 direcciones de memoria.</strong></li>
+<li>Una lectura de $N$ registros desde la dirección $A$ devuelve los registros situados en las direcciones: $A$, $A+2$, $A+4$, $\dots$, $A+2(N-1)$.</li>
+<li><strong>Las direcciones deben ser estrictamente pares.</strong> Cualquier petición a una dirección impar devuelve <strong>Excepción 02 (<code>ILLEGAL DATA ADDRESS</code>)</strong>.</li>
+</ul>
+<hr />
+<h2 id="mapa-ram-de-medidas-0280h-02ceh">📊 Mapa RAM de Medidas (<code>0280h</code> – <code>02CEh</code>)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Dir. Hex</th>
+<th style="text-align: left;">Variable</th>
+<th style="text-align: center;">Tipo</th>
+<th style="text-align: left;">Unidad / Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>0280h</code></td>
+<td style="text-align: left;">V L1-N</td>
+<td style="text-align: center;">VN</td>
+<td style="text-align: left;">Tensión Fase 1 a Neutro</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0282h</code></td>
+<td style="text-align: left;">A L1</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Corriente de Línea Fase 1</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0284h</code></td>
+<td style="text-align: left;">W L1</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Activa Fase 1</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0286h</code></td>
+<td style="text-align: left;">V L2-N</td>
+<td style="text-align: center;">VN</td>
+<td style="text-align: left;">Tensión Fase 2 a Neutro</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0288h</code></td>
+<td style="text-align: left;">A L2</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Corriente de Línea Fase 2</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>028Ah</code></td>
+<td style="text-align: left;">W L2</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Activa Fase 2</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>028Ch</code></td>
+<td style="text-align: left;">V L3-N</td>
+<td style="text-align: center;">VN</td>
+<td style="text-align: left;">Tensión Fase 3 a Neutro</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>028Eh</code></td>
+<td style="text-align: left;">A L3</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Corriente de Línea Fase 3</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0290h</code></td>
+<td style="text-align: left;">W L3</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Activa Fase 3</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0292h</code></td>
+<td style="text-align: left;">V L1-L2</td>
+<td style="text-align: center;">VC</td>
+<td style="text-align: left;">Tensión Compuesta Fase 1 - Fase 2</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0294h</code></td>
+<td style="text-align: left;">V L2-L3</td>
+<td style="text-align: center;">VC</td>
+<td style="text-align: left;">Tensión Compuesta Fase 2 - Fase 3</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0296h</code></td>
+<td style="text-align: left;">V L3-L1</td>
+<td style="text-align: center;">VC</td>
+<td style="text-align: left;">Tensión Compuesta Fase 3 - Fase 1</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>0298h</code></td>
+<td style="text-align: left;">VL-L ∑</td>
+<td style="text-align: center;">VC</td>
+<td style="text-align: left;">Promedio de Tensiones Compuestas</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>029Ah</code></td>
+<td style="text-align: left;">A max</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Corriente Máxima de Demanda</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>029Ch</code></td>
+<td style="text-align: left;">A n</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Corriente del Neutro</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>029Eh</code></td>
+<td style="text-align: left;">W ∑</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Potencia Activa Trifásica Total</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02A0h</code></td>
+<td style="text-align: left;">VA L1</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Aparente Fase 1</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02A2h</code></td>
+<td style="text-align: left;">VA L2</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Aparente Fase 2</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02A4h</code></td>
+<td style="text-align: left;">VA L3</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Aparente Fase 3</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02A6h</code></td>
+<td style="text-align: left;">VA ∑</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Potencia Aparente Trifásica Total</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02A8h</code></td>
+<td style="text-align: left;">var L1</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Reactiva Fase 1</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02AAh</code></td>
+<td style="text-align: left;">var L2</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Reactiva Fase 2</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02ACh</code></td>
+<td style="text-align: left;">var L3</td>
+<td style="text-align: center;">P</td>
+<td style="text-align: left;">Potencia Reactiva Fase 3</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02AEh</code></td>
+<td style="text-align: left;">var ∑</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Potencia Reactiva Trifásica Total</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02B0h</code></td>
+<td style="text-align: left;">W dmd</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Demanda de Potencia Activa</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02B2h</code></td>
+<td style="text-align: left;">VA dmd</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Demanda de Potencia Aparente</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02B4h</code></td>
+<td style="text-align: left;">W dmd MAX</td>
+<td style="text-align: center;">P∑</td>
+<td style="text-align: left;">Máxima Demanda de Potencia Activa</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02B8h</code></td>
+<td style="text-align: left;">Hz</td>
+<td style="text-align: center;">H</td>
+<td style="text-align: left;">Frecuencia de Red</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02BAh</code></td>
+<td style="text-align: left;">A dmd max</td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">Máxima Demanda de Corriente</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02BCh</code></td>
+<td style="text-align: left;">PF L1 / PF L2</td>
+<td style="text-align: center;">PF</td>
+<td style="text-align: left;">Factor de Potencia Fase 1 (LSB) y Fase 2 (MSB)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02BEh</code></td>
+<td style="text-align: left;">PF L3 / PF ∑</td>
+<td style="text-align: center;">PF</td>
+<td style="text-align: left;">Factor de Potencia Fase 3 (LSB) y Total (MSB)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02C6h</code></td>
+<td style="text-align: left;">kWh</td>
+<td style="text-align: center;">E (4B)</td>
+<td style="text-align: left;">Energía Activa Acumulada (2 registros)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02CAh</code></td>
+<td style="text-align: left;">varh</td>
+<td style="text-align: center;">E (4B)</td>
+<td style="text-align: left;">Energía Reactiva Acumulada (2 registros)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>02CEh</code></td>
+<td style="text-align: left;">Hourmeter</td>
+<td style="text-align: center;">HM (4B)</td>
+<td style="text-align: left;">Horas de Funcionamiento (2 registros)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="eeprom-de-parametros-1080h-108eh">⚙️ EEPROM de Parámetros (<code>1080h</code> – <code>108Eh</code>)</h2>
+<p>El área EEPROM almacena la configuración de transformación y comunicación del analizador. Es <strong>escribible mediante Fn 06 y Fn 16</strong>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Dir. Hex</th>
+<th style="text-align: left;">Parámetro</th>
+<th style="text-align: center;">Formato</th>
+<th style="text-align: center;">Valor Inicial</th>
+<th style="text-align: center;">Rango Permitido</th>
+<th style="text-align: left;">Descripción / Efecto de Escritura</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>1080h</code></td>
+<td style="text-align: left;">Password</td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;"><code>0000h</code></td>
+<td style="text-align: center;"><code>0000h</code>–<code>FFFFh</code></td>
+<td style="text-align: left;">Contraseña para desensamblar el candado de seguridad.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>1082h</code></td>
+<td style="text-align: left;"><code>Vt_ratio</code></td>
+<td style="text-align: center;">11.1</td>
+<td style="text-align: center;"><code>000Ah</code> (=1.0)</td>
+<td style="text-align: center;">1–999 (0.1 a 99.9)</td>
+<td style="text-align: left;"><strong>Relación de Transformación de Tensión (VT).</strong> Reescala en vivo las lecturas de tipo VN, VC, P y P∑.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>1084h</code></td>
+<td style="text-align: left;"><code>Ct_ratio</code></td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;"><code>0019h</code> (=25)</td>
+<td style="text-align: center;">1–999 (1 a 999)</td>
+<td style="text-align: left;"><strong>Relación de Transformación de Corriente (CT).</strong> Reescala en vivo las lecturas de tipo A, P y P∑.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>1086h</code></td>
+<td style="text-align: left;"><code>P_int</code></td>
+<td style="text-align: center;">111 min</td>
+<td style="text-align: center;"><code>000Fh</code> (=15)</td>
+<td style="text-align: center;">1–60</td>
+<td style="text-align: left;">Ventana de integración para la demanda.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>1088h</code></td>
+<td style="text-align: left;"><code>Filter_rng</code></td>
+<td style="text-align: center;">111 %</td>
+<td style="text-align: center;"><code>0002h</code></td>
+<td style="text-align: center;">1–100</td>
+<td style="text-align: left;">Filtro de estabilidad de lectura.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>108Ah</code></td>
+<td style="text-align: left;"><code>Filter_coe</code></td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;"><code>0001h</code></td>
+<td style="text-align: center;">1–100</td>
+<td style="text-align: left;">Coeficiente del filtro.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>108Ch</code></td>
+<td style="text-align: left;"><code>Address</code></td>
+<td style="text-align: center;">111</td>
+<td style="text-align: center;"><code>0001h</code></td>
+<td style="text-align: center;">1–247</td>
+<td style="text-align: left;"><strong>Dirección de Estación Modbus.</strong> Modifica la dirección en la que responde el esclavo.</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>108Eh</code></td>
+<td style="text-align: left;"><code>Set_vup</code></td>
+<td style="text-align: center;">111 V</td>
+<td style="text-align: center;"><code>00F0h</code> (=240)</td>
+<td style="text-align: center;">1–999</td>
+<td style="text-align: left;">Umbral de sobretensión para activar la alarma.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="formulas-de-conversion-a-magnitudes-fisicas">📐 Fórmulas de Conversión a Magnitudes Físicas</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Tipo</th>
+<th style="text-align: center;">Punto Decimal</th>
+<th style="text-align: center;">Unidad</th>
+<th style="text-align: left;">Fórmula de Ingeniería</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong>VN</strong></td>
+<td style="text-align: center;"><code>111.1</code></td>
+<td style="text-align: center;">V</td>
+<td style="text-align: left;">$V = \frac{\text{reg}}{10} \times \text{VT}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>VC</strong></td>
+<td style="text-align: center;"><code>111</code></td>
+<td style="text-align: center;">V</td>
+<td style="text-align: left;">$V = \text{reg} \times \text{VT}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>A</strong></td>
+<td style="text-align: center;"><code>111</code></td>
+<td style="text-align: center;">A</td>
+<td style="text-align: left;">$I = \frac{\text{reg}}{1000} \times \text{CT}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>P</strong></td>
+<td style="text-align: center;"><code>111.1</code></td>
+<td style="text-align: center;">W / VA / var</td>
+<td style="text-align: left;">$P = \frac{\text{reg}}{10} \times \text{CT} \times \text{VT}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>P∑</strong></td>
+<td style="text-align: center;"><code>111</code></td>
+<td style="text-align: center;">W / VA / var</td>
+<td style="text-align: left;">$P = \text{reg} \times \text{CT} \times \text{VT}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>H</strong></td>
+<td style="text-align: center;"><code>111.1</code></td>
+<td style="text-align: center;">Hz</td>
+<td style="text-align: left;">$f = \frac{\text{reg}}{10}$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>PF</strong></td>
+<td style="text-align: center;"><code>1.11</code></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: left;">$</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>E</strong></td>
+<td style="text-align: center;"><code>111.1</code></td>
+<td style="text-align: center;">kWh / kvarh</td>
+<td style="text-align: left;">$E = \frac{\text{reg32}}{10}$</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="candado-de-seguridad-y-cambio-de-direccion">🔒 Candado de Seguridad y Cambio de Dirección</h2>
+<h3 id="candado-de-programacion-opcional">Candado de Programación (Opcional)</h3>
+<ul>
+<li>Si el candado está activo en las opciones del instructor, cualquier intento de escritura a las direcciones <code>1082h</code>–<code>108Eh</code> sin autenticación previa devolverá <strong>Excepción 06 (<code>SLAVE DEVICE BUSY</code>)</strong>.</li>
+<li>Para desbloquear, el estudiante debe enviar una Fn 06 a la dirección <code>1080h</code> con la contraseña correcta.</li>
+</ul>
+<h3 id="cambio-dinamico-de-direccion-108ch">Cambio Dinámico de Dirección (<code>108Ch</code>)</h3>
+<p>Si el estudiante escribe una nueva dirección $S$ en <code>108Ch</code>:
+1. El WM14 emite la respuesta de eco en la dirección <strong>antigua</strong> (Estación 1).
+2. A partir del ciclo siguiente, el analizador deja de responder en la Estación 1 y responderá únicamente en la nueva estación $S$.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+
+
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+
+
+  </body>
+</html>

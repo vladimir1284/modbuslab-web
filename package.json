@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "docs:build": "mkdocs build",
+    "docs:serve": "mkdocs serve"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^5.0.0",
