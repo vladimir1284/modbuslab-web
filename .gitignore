@@ -4,3 +4,6 @@ build/
 dist/
 .cloudflare/
 *.log
+.env
+site/
+.wrangler/
