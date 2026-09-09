@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AnalyzerWm14 } from './analyzer-wm14.js';
 import { PlcMasterK } from './plc-masterk.js';
 import { PhysicalProcess } from './process.js';
+import { VirtualBus } from './bus.js';
 
 describe('PLC Virtual Master-K120S', () => {
   it('handles coil write and register read bit mapping (P40 coil to word P0004 bit 0)', () => {
@@ -18,6 +19,22 @@ describe('PLC Virtual Master-K120S', () => {
       const val = view.getUint16(2, false);
       expect(val & 0x0001).toBe(1); // Bit 0 (P40) is set
     }
+  });
+
+  it('tracks fn 08 diagnostic counters for subfn 0x000B/0x000D/0x000E (README §4.3)', () => {
+    const plc = new PlcMasterK();
+    plc.readHoldingRegisters(0x0004, 1); // 1 successful message
+    plc.writeSingleRegister(0x4000, 0x1234); // 1 exception (Area F read-only)
+
+    const busMsgRes = plc.diagnostics(0x000b, 0) as Uint8Array;
+    const excRes = plc.diagnostics(0x000d, 0) as Uint8Array;
+    const slaveMsgRes = plc.diagnostics(0x000e, 0) as Uint8Array;
+
+    const readCount = (r: Uint8Array) => new DataView(r.buffer, r.byteOffset, r.byteLength).getUint16(3, false);
+
+    expect(readCount(busMsgRes)).toBe(2); // read + write(exception), counted before this diagnostics call itself
+    expect(readCount(excRes)).toBeGreaterThanOrEqual(1);
+    expect(readCount(slaveMsgRes)).toBeGreaterThanOrEqual(2);
   });
 
   it('rejects write to physical input address', () => {
@@ -85,6 +102,24 @@ describe('Analyzer Virtual Carlo Gavazzi WM14', () => {
     const decodedWithOldCt = (beforeRaw / 1000) * 25;
     const decodedWithNewCt = (afterRaw / 1000) * 50;
     expect(decodedWithNewCt).toBeCloseTo(decodedWithOldCt * 2, 5);
+  });
+
+  it('echoes the MBAP tid back on a TCP response (§4.2)', async () => {
+    const bus = new VirtualBus();
+    // fn 03 read 1 register at 0x0004, wrapped in an MBAP frame with tid = 0x00AB
+    const pdu = new Uint8Array([0x03, 0x00, 0x04, 0x00, 0x01]);
+    const frame = new Uint8Array(7 + pdu.length);
+    const view = new DataView(frame.buffer);
+    view.setUint16(0, 0x00ab, false); // tid
+    view.setUint16(2, 0, false); // protocol id
+    view.setUint16(4, 1 + pdu.length, false); // length
+    frame[6] = 2; // unit (PLC)
+    frame.set(pdu, 7);
+
+    const res = await bus.processFrame(frame, 'tcp');
+    expect(res.timeout).toBe(false);
+    const resTid = new DataView(res.frame!.buffer, res.frame!.byteOffset, res.frame!.byteLength).getUint16(0, false);
+    expect(resTid).toBe(0x00ab);
   });
 
   it('handles station address change correctly', () => {

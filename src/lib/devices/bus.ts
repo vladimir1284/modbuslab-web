@@ -1,5 +1,5 @@
 import { getCodec } from '../modbus/codec.js';
-import type { CodecName } from '../modbus/types.js';
+import type { CodecName, EncodeCtx } from '../modbus/types.js';
 import { AnalyzerWm14 } from './analyzer-wm14.js';
 import { PlcMasterK } from './plc-masterk.js';
 import { PhysicalProcess } from './process.js';
@@ -75,6 +75,13 @@ export class VirtualBus {
 
     const { unit, pdu } = decoded;
 
+    // MBAP tid must be echoed back verbatim in the response (README §4.2).
+    let encodeCtx: EncodeCtx | undefined;
+    if (codecName === 'tcp' && frame.length >= 2) {
+      const tid = new DataView(frame.buffer, frame.byteOffset, frame.byteLength).getUint16(0, false);
+      encodeCtx = { transactionId: tid };
+    }
+
     // Simulate extra processing delay
     const totalDelay = this.delayMs + this.faults.extraDelayMs;
 
@@ -92,7 +99,7 @@ export class VirtualBus {
     }
 
     const resPdu = slave.processPdu(pdu);
-    let resFrame = codec.encode(unit, resPdu);
+    let resFrame = codec.encode(unit, resPdu, encodeCtx);
 
     // Check CRC corruption simulation
     if (Math.random() < this.faults.corruptProbability && resFrame.length > 2) {

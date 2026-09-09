@@ -65,4 +65,53 @@ describe('Lab Domain & Task Verifier', () => {
 
     expect(evaluateTask10([mockMonitorExchange], v)).toBe(false);
   });
+
+  it('evaluates task 10 correctly when history is stored newest-first (UI order)', () => {
+    const v = getVariant(1);
+    const base = Date.now();
+    const mk = (id: number, tOffset: number, reqPdu: Exchange['reqPdu']): Exchange => ({
+      id,
+      timestamp: base + tOffset,
+      origin: 'student',
+      codec: 'rtu',
+      txFrame: new Uint8Array(),
+      reqPdu,
+      elapsedMs: 10,
+      ok: true
+    });
+
+    // Chronological order: read Ct_ratio -> write 0x0032 -> read current.
+    // Stored newest-first, as +page.svelte does when unshifting new exchanges.
+    const historyNewestFirst: Exchange[] = [
+      mk(3, 2000, { unit: 1, fn: 3, isException: false, addr: 0x0282, count: 1, rawPdu: new Uint8Array() }),
+      mk(2, 1000, { unit: 1, fn: 6, isException: false, addr: 0x1084, value: 0x0032, rawPdu: new Uint8Array() }),
+      mk(1, 0, { unit: 1, fn: 3, isException: false, addr: 0x1084, count: 1, rawPdu: new Uint8Array() })
+    ];
+
+    expect(evaluateTask10(historyNewestFirst, v)).toBe(true);
+  });
+
+  it('does not accept a voltage register as proof of reading current for task 10', () => {
+    const v = getVariant(1);
+    const base = Date.now();
+    const mk = (id: number, tOffset: number, reqPdu: Exchange['reqPdu']): Exchange => ({
+      id,
+      timestamp: base + tOffset,
+      origin: 'student',
+      codec: 'rtu',
+      txFrame: new Uint8Array(),
+      reqPdu,
+      elapsedMs: 10,
+      ok: true
+    });
+
+    const history: Exchange[] = [
+      mk(1, 0, { unit: 1, fn: 3, isException: false, addr: 0x1084, count: 1, rawPdu: new Uint8Array() }),
+      mk(2, 1000, { unit: 1, fn: 6, isException: false, addr: 0x1084, value: 0x0032, rawPdu: new Uint8Array() }),
+      // V L1-N (0x0280) is a voltage register, not current — must not satisfy the task.
+      mk(3, 2000, { unit: 1, fn: 3, isException: false, addr: 0x0280, count: 1, rawPdu: new Uint8Array() })
+    ];
+
+    expect(evaluateTask10(history, v)).toBe(false);
+  });
 });

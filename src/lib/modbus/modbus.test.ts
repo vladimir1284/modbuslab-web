@@ -60,6 +60,14 @@ describe('Modbus Codecs', () => {
     expect(decoded.unit).toBe(1);
     expect(bytesToHex(decoded.pdu)).toBe('03 02 98 00 01');
   });
+
+  it('rejects a mismatched MBAP tid', () => {
+    const codec = new CodecTcp();
+    const pdu = new Uint8Array([0x03, 0x02, 0x98, 0x00, 0x01]);
+    const encoded = codec.encode(1, pdu, { transactionId: 12 });
+
+    expect(() => codec.decode(encoded, { transactionId: 13 })).toThrow('Transaction ID mismatch');
+  });
 });
 
 describe('Modbus PDU Parsing', () => {

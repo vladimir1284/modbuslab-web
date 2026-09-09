@@ -180,11 +180,15 @@ export function evaluateTask8(history: Exchange[], v: Variant): boolean {
 }
 
 export function evaluateTask10(history: Exchange[], v: Variant): boolean {
+  // History is stored newest-first (UI unshifts each new exchange); this predicate is
+  // order-sensitive (fn03 -> fn06 -> current read), so it must scan in chronological order.
+  const chronological = [...history].sort((a, b) => a.timestamp - b.timestamp);
+
   let step1Idx = -1;
   let step2Idx = -1;
 
-  for (let i = 0; i < history.length; i++) {
-    const x = history[i];
+  for (let i = 0; i < chronological.length; i++) {
+    const x = chronological[i];
     if (x.origin !== 'student' || !x.ok) continue;
 
     // Step 1: Read Ct_ratio at 0x1084
@@ -199,10 +203,9 @@ export function evaluateTask10(history: Exchange[], v: Variant): boolean {
       continue;
     }
 
-    // Step 3: Read current magnitude after step 2
+    // Step 3: Read current magnitude after step 2 (A L1/A L2/A L3 only — not a voltage register)
     if (step2Idx !== -1 && x.reqPdu?.unit === 1 && (x.reqPdu?.fn === 3 || x.reqPdu?.fn === 4)) {
-      // Any current reading (0x0282, 0x0288, 0x028e)
-      if (x.reqPdu?.addr === 0x0282 || x.reqPdu?.addr === 0x0288 || x.reqPdu?.addr === 0x028e || x.reqPdu?.addr === 0x0280) {
+      if (x.reqPdu?.addr === 0x0282 || x.reqPdu?.addr === 0x0288 || x.reqPdu?.addr === 0x028e) {
         return true;
       }
     }

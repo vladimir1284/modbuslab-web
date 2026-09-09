@@ -38,6 +38,29 @@ export class PlcMasterK implements SlaveHandler {
 
   private commEventCounter = 0;
 
+  // Diagnostic counters for fn 08 subfn 0x000B..0x0012 (README §4.3).
+  private busMessageCount = 0;
+  private busCommErrorCount = 0;
+  private busExceptionErrorCount = 0;
+  private slaveMessageCount = 0;
+  private slaveNoResponseCount = 0;
+  private slaveNakCount = 0;
+  private slaveBusyCount = 0;
+  private busCharOverrunCount = 0;
+
+  private recordSuccess(): void {
+    this.busMessageCount++;
+    this.slaveMessageCount++;
+    this.commEventCounter++;
+  }
+
+  private recordException(code: number): number {
+    this.busMessageCount++;
+    this.slaveMessageCount++;
+    this.busExceptionErrorCount++;
+    return code;
+  }
+
   constructor() {
     // Areas 0..8 according to Master-K memory map
     // Nibble high: 0=P, 1=M, 2=L, 3=K, 4=F(RO), 5=T, 6=C, 7=S, 8=D
@@ -130,7 +153,7 @@ export class PlcMasterK implements SlaveHandler {
   private readBits(addr: number, count: number, fn: number): Uint8Array | number {
     const loc = this.getArea(addr);
     if (!loc || loc.offset + count > loc.area.sizeWords * 16) {
-      return 0x02; // ILLEGAL DATA ADDRESS
+      return this.recordException(0x02); // ILLEGAL DATA ADDRESS
     }
     const byteCount = Math.ceil(count / 8);
     const res = new Uint8Array(2 + byteCount);
@@ -145,7 +168,7 @@ export class PlcMasterK implements SlaveHandler {
         res[byteIndex] |= (1 << bitOffset);
       }
     }
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
@@ -160,7 +183,7 @@ export class PlcMasterK implements SlaveHandler {
   private readRegisters(addr: number, count: number, fn: number): Uint8Array | number {
     const loc = this.getArea(addr);
     if (!loc || loc.offset + count > loc.area.sizeWords) {
-      return 0x02; // ILLEGAL DATA ADDRESS
+      return this.recordException(0x02); // ILLEGAL DATA ADDRESS
     }
     const res = new Uint8Array(2 + count * 2);
     res[0] = fn;
@@ -171,20 +194,20 @@ export class PlcMasterK implements SlaveHandler {
       const val = loc.area.getWord(loc.offset + i);
       view.setUint16(2 + i * 2, val, false);
     }
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
   writeSingleCoil(addr: number, value: number): Uint8Array | number { // fn 05
     if (this.isInputPhysicalAddr(addr)) {
-      return 0x02; // Physical inputs cannot be written
+      return this.recordException(0x02); // Physical inputs cannot be written
     }
     const loc = this.getArea(addr);
     if (!loc || loc.offset >= loc.area.sizeWords * 16) {
-      return 0x02; // ILLEGAL DATA ADDRESS
+      return this.recordException(0x02); // ILLEGAL DATA ADDRESS
     }
     if (loc.area.readOnly) {
-      return 0x02;
+      return this.recordException(0x02);
     }
     loc.area.setBit(loc.offset, value === 0xff00);
 
@@ -193,17 +216,17 @@ export class PlcMasterK implements SlaveHandler {
     const view = new DataView(res.buffer);
     view.setUint16(1, addr, false);
     view.setUint16(3, value, false);
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
   writeSingleRegister(addr: number, value: number): Uint8Array | number { // fn 06
     const loc = this.getArea(addr);
     if (!loc || loc.offset >= loc.area.sizeWords) {
-      return 0x02; // ILLEGAL DATA ADDRESS
+      return this.recordException(0x02); // ILLEGAL DATA ADDRESS
     }
     if (loc.area.readOnly) {
-      return 0x02;
+      return this.recordException(0x02);
     }
     loc.area.setWord(loc.offset, value);
 
@@ -212,7 +235,7 @@ export class PlcMasterK implements SlaveHandler {
     const view = new DataView(res.buffer);
     view.setUint16(1, addr, false);
     view.setUint16(3, value, false);
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
@@ -220,7 +243,7 @@ export class PlcMasterK implements SlaveHandler {
     const res = new Uint8Array(2);
     res[0] = 0x07;
     res[1] = 0x00; // Status byte
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
@@ -229,12 +252,39 @@ export class PlcMasterK implements SlaveHandler {
     res[0] = 0x08;
     const view = new DataView(res.buffer);
     view.setUint16(1, subfn, false);
-    if (subfn === 0x0000) { // Return Query Data
-      view.setUint16(3, data, false);
-    } else {
-      view.setUint16(3, 0, false);
+
+    switch (subfn) {
+      case 0x0000: // Return Query Data
+        view.setUint16(3, data, false);
+        break;
+      case 0x000b: // Return Bus Message Count
+        view.setUint16(3, this.busMessageCount & 0xffff, false);
+        break;
+      case 0x000c: // Return Bus Communication Error Count
+        view.setUint16(3, this.busCommErrorCount & 0xffff, false);
+        break;
+      case 0x000d: // Return Bus Exception Error Count
+        view.setUint16(3, this.busExceptionErrorCount & 0xffff, false);
+        break;
+      case 0x000e: // Return Slave Message Count
+        view.setUint16(3, this.slaveMessageCount & 0xffff, false);
+        break;
+      case 0x000f: // Return Slave No Response Count
+        view.setUint16(3, this.slaveNoResponseCount & 0xffff, false);
+        break;
+      case 0x0010: // Return Slave NAK Count
+        view.setUint16(3, this.slaveNakCount & 0xffff, false);
+        break;
+      case 0x0011: // Return Slave Busy Count
+        view.setUint16(3, this.slaveBusyCount & 0xffff, false);
+        break;
+      case 0x0012: // Return Bus Character Overrun Count
+        view.setUint16(3, this.busCharOverrunCount & 0xffff, false);
+        break;
+      default:
+        view.setUint16(3, 0, false);
     }
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
@@ -250,15 +300,15 @@ export class PlcMasterK implements SlaveHandler {
   writeMultipleCoils(addr: number, count: number, bytes: number, data: Uint8Array): Uint8Array | number { // fn 15
     for (let i = 0; i < count; i++) {
       if (this.isInputPhysicalAddr(addr + i)) {
-        return 0x02;
+        return this.recordException(0x02);
       }
     }
     const loc = this.getArea(addr);
     if (!loc || loc.offset + count > loc.area.sizeWords * 16) {
-      return 0x02;
+      return this.recordException(0x02);
     }
     if (loc.area.readOnly) {
-      return 0x02;
+      return this.recordException(0x02);
     }
 
     for (let i = 0; i < count; i++) {
@@ -273,17 +323,17 @@ export class PlcMasterK implements SlaveHandler {
     const view = new DataView(res.buffer);
     view.setUint16(1, addr, false);
     view.setUint16(3, count, false);
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 
   writeMultipleRegisters(addr: number, count: number, bytes: number, data: Uint8Array): Uint8Array | number { // fn 16
     const loc = this.getArea(addr);
     if (!loc || loc.offset + count > loc.area.sizeWords) {
-      return 0x02;
+      return this.recordException(0x02);
     }
     if (loc.area.readOnly) {
-      return 0x02;
+      return this.recordException(0x02);
     }
     const dataView = new DataView(data.buffer, data.byteOffset, data.byteLength);
 
@@ -297,7 +347,7 @@ export class PlcMasterK implements SlaveHandler {
     const view = new DataView(res.buffer);
     view.setUint16(1, addr, false);
     view.setUint16(3, count, false);
-    this.commEventCounter++;
+    this.recordSuccess();
     return res;
   }
 }

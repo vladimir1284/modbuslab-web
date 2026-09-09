@@ -76,6 +76,7 @@
   let analyzerMonitorInterval: any = null;
 
   let exchangeCounter = 0;
+  let tcpTid = 0;
 
   let completedTaskIds = $derived.by(() => {
     const fullHistory = [...historyBits, ...historyRegisters];
@@ -151,7 +152,9 @@
     const timeout = curTab === 'bits' ? timeoutMsBits : timeoutMsRegisters;
     const codec = getCodec(codecName);
 
-    const txFrame = codec.encode(station, pdu);
+    // MBAP tid: incremented per request, response must echo it (README §4.2).
+    const tcpCtx = codecName === 'tcp' ? { transactionId: (tcpTid = (tcpTid + 1) & 0xffff) } : undefined;
+    const txFrame = codec.encode(station, pdu, tcpCtx);
     const startMs = Date.now();
 
     let rxFrame: Uint8Array | undefined = undefined;
@@ -178,11 +181,16 @@
     let resPdu;
     try {
       reqPdu = parsePdu(pdu, station);
-      if (rxFrame) {
-        const decodedFrame = codec.decode(rxFrame);
-        resPdu = parsePdu(decodedFrame.pdu, decodedFrame.unit);
-      }
     } catch {}
+    if (rxFrame) {
+      try {
+        const decodedFrame = codec.decode(rxFrame, tcpCtx);
+        resPdu = parsePdu(decodedFrame.pdu, decodedFrame.unit);
+      } catch (e: any) {
+        ok = false;
+        errStr = e?.message || 'Error de decodificación';
+      }
+    }
 
     const exchange: Exchange = {
       id: ++exchangeCounter,
