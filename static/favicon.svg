@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+    <linearGradient id="wave" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)" stroke="#4338ca" stroke-width="1.5" />
+
+  <!-- Bus line background accents -->
+  <line x1="10" y1="48" x2="54" y2="48" stroke="#3730a3" stroke-width="1.5" stroke-dasharray="2 2" />
+
+  <!-- Stylized M / Digital Waveform trace -->
+  <path d="M 12 44 V 20 L 22 20 V 36 L 32 16 L 42 36 V 20 L 52 20 V 44"
+        stroke="url(#wave)"
+        stroke-width="3.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#glow)" />
+
+  <!-- Connected Modbus Nodes -->
+  <!-- Station 1 (Analyzer - Cyan) -->
+  <circle cx="12" cy="44" r="3" fill="#38bdf8" stroke="#0284c7" stroke-width="1" />
+  <circle cx="12" cy="44" r="1.2" fill="#ffffff" />
+
+  <!-- Station 2 (PLC - Green) -->
+  <circle cx="52" cy="44" r="3" fill="#34d399" stroke="#059669" stroke-width="1" />
+  <circle cx="52" cy="44" r="1.2" fill="#ffffff" />
+
+  <!-- Peak indicator (Data packet - Amber) -->
+  <circle cx="32" cy="16" r="2.5" fill="#fbbf24" />
+</svg>
