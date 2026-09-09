@@ -15,11 +15,40 @@
     id?: string;
   } = $props();
 
+  let isFocused = $state(false);
+  let rawText = $state('');
+
   let hexText = $derived(formatHex(value, width));
+
+  $effect(() => {
+    if (!isFocused) {
+      rawText = hexText;
+    }
+  });
+
+  function handleFocus(e: FocusEvent) {
+    isFocused = true;
+    rawText = hexText;
+    const target = e.currentTarget as HTMLInputElement;
+    setTimeout(() => target.select(), 0);
+  }
+
+  function handleBlur() {
+    isFocused = false;
+  }
 
   function handleInput(e: Event) {
     const target = e.target as HTMLInputElement;
-    const clean = target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, width);
+    let clean = target.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+
+    // If user types additional digits into pre-padded zero text (e.g. "00004" -> "0004"),
+    // strip excess leading zeros so typed digits aren't dropped.
+    while (clean.length > width && clean.startsWith('0')) {
+      clean = clean.slice(1);
+    }
+    clean = clean.slice(0, width);
+
+    rawText = clean;
     const parsed = parseInt(clean, 16);
     value = isNaN(parsed) ? 0 : parsed;
   }
@@ -33,10 +62,12 @@
     <input
       {id}
       type="text"
-      value={hexText}
+      value={isFocused ? rawText : hexText}
+      onfocus={handleFocus}
+      onblur={handleBlur}
       oninput={handleInput}
       {disabled}
-      maxlength={width}
+      maxlength={width + 4}
       class="w-full px-2 py-1 text-sm font-mono border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-400"
     />
     <div
