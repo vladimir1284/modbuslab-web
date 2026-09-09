@@ -4,6 +4,12 @@ import type { SlaveHandler } from './slave.js';
 const PHYSICAL_CT = 25;
 const PHYSICAL_VT = 1;
 
+// Invented: README §5.2's EEPROM map has no writable over-current threshold register
+// (only Set_vup for voltage, 0x108E), so there is no source value to wire the current
+// alarm (bit 1 of 0x027E) to. Picked a plausible round number — this is a teaching lab,
+// not a faithful WM14 clone, so an invented-but-documented threshold is fine here.
+const ALARM_I_THRESHOLD = 20; // A, per phase
+
 export class AnalyzerWm14 implements SlaveHandler {
   readonly station = 1;
   private ram = new Uint16Array(0x300); // 0x000..0x2FF
@@ -13,6 +19,23 @@ export class AnalyzerWm14 implements SlaveHandler {
   public password = 0x0000;
   private unlockedUntilMs = 0;
   private currentStation = 1;
+
+  // Demand ("dmd") window accounting for 0x02B0..0x02B4/0x02BA/0x02C0..0x02C4 (§5.2).
+  // Simplified block-window demand (not a true sliding window): accumulate a running
+  // average per P_int-minute block, publish it when the block closes, and track the
+  // highest block average seen so far as the "MAX" peak-demand registers. There is no
+  // spec-defined reset for the peak, so it only grows for the life of the simulator —
+  // documented simplification, not a real WM14 behavior.
+  private demandWindowStartMs: number | null = null;
+  private demandSampleCount = 0;
+  private demandSumW = 0;
+  private demandSumVA = 0;
+  private demandSumI: [number, number, number] = [0, 0, 0];
+  private demandW = 0;
+  private demandVA = 0;
+  private demandI: [number, number, number] = [0, 0, 0];
+  private demandWMax = 0;
+  private demandIMax = 0;
 
   constructor(public process: PhysicalProcess) {
     // Initial EEPROM values
@@ -113,6 +136,45 @@ export class AnalyzerWm14 implements SlaveHandler {
     const va3_raw = Math.round((va3_w * 10) / (ct * vt));
     const vasum_raw = Math.round((va1_w + va2_w + va3_w) / (ct * vt));
 
+    // Demand ("dmd") block-window accounting — see field comment above.
+    const pIntMin = this.getEepromWord(0x1086) || 15;
+    const demandWindowMs = pIntMin * 60000;
+    if (this.demandWindowStartMs === null) {
+      this.demandWindowStartMs = nowMs;
+    }
+    this.demandSumW += w_sum;
+    this.demandSumVA += va1_w + va2_w + va3_w;
+    this.demandSumI[0] += st.I[0];
+    this.demandSumI[1] += st.I[1];
+    this.demandSumI[2] += st.I[2];
+    this.demandSampleCount++;
+
+    if (nowMs - this.demandWindowStartMs >= demandWindowMs && this.demandSampleCount > 0) {
+      this.demandW = this.demandSumW / this.demandSampleCount;
+      this.demandVA = this.demandSumVA / this.demandSampleCount;
+      this.demandI = [
+        this.demandSumI[0] / this.demandSampleCount,
+        this.demandSumI[1] / this.demandSampleCount,
+        this.demandSumI[2] / this.demandSampleCount
+      ];
+      this.demandWMax = Math.max(this.demandWMax, this.demandW);
+      this.demandIMax = Math.max(this.demandIMax, ...this.demandI);
+
+      this.demandWindowStartMs = nowMs;
+      this.demandSumW = 0;
+      this.demandSumVA = 0;
+      this.demandSumI = [0, 0, 0];
+      this.demandSampleCount = 0;
+    }
+
+    const wDmdRaw = Math.round(this.demandW / (ct * vt));
+    const vaDmdRaw = Math.round(this.demandVA / (ct * vt));
+    const wDmdMaxRaw = Math.round(this.demandWMax / (ct * vt));
+    const aDmdMaxRaw = Math.round((this.demandIMax * 1000) / ct);
+    const aL1DmdRaw = Math.round((this.demandI[0] * 1000) / ct);
+    const aL2DmdRaw = Math.round((this.demandI[1] * 1000) / ct);
+    const aL3DmdRaw = Math.round((this.demandI[2] * 1000) / ct);
+
     const var1_w = st.V[0] * st.I[0] * Math.sin(st.phi[0]);
     const var2_w = st.V[1] * st.I[1] * Math.sin(st.phi[1]);
     const var3_w = st.V[2] * st.I[2] * Math.sin(st.phi[2]);
@@ -164,17 +226,17 @@ export class AnalyzerWm14 implements SlaveHandler {
     this.setRamWord(0x02aa, var2_raw);
     this.setRamWord(0x02ac, var3_raw);
     this.setRamWord(0x02ae, varsum_raw);
-    this.setRamWord(0x02b0, w_sum_raw);
-    this.setRamWord(0x02b2, vasum_raw);
-    this.setRamWord(0x02b4, w_sum_raw);
+    this.setRamWord(0x02b0, wDmdRaw);
+    this.setRamWord(0x02b2, vaDmdRaw);
+    this.setRamWord(0x02b4, wDmdMaxRaw);
     this.setRamWord(0x02b6, 0);
     this.setRamWord(0x02b8, hz_raw);
-    this.setRamWord(0x02ba, Math.max(a1_raw, a2_raw, a3_raw));
+    this.setRamWord(0x02ba, aDmdMaxRaw);
     this.setRamWord(0x02bc, pf12_word);
     this.setRamWord(0x02be, pf3sum_word);
-    this.setRamWord(0x02c0, a1_raw);
-    this.setRamWord(0x02c2, a2_raw);
-    this.setRamWord(0x02c4, a3_raw);
+    this.setRamWord(0x02c0, aL1DmdRaw);
+    this.setRamWord(0x02c2, aL2DmdRaw);
+    this.setRamWord(0x02c4, aL3DmdRaw);
 
     // 32-bit registers (kWh, varh, hourmeter)
     const kwh_raw = Math.round(st.kWh * 10);
@@ -190,6 +252,8 @@ export class AnalyzerWm14 implements SlaveHandler {
     const vMax = Math.max(st.V[0], st.V[1], st.V[2]);
     const vUpThreshold = this.getEepromWord(0x108e);
     if (vMax > vUpThreshold) alarmByte |= 0x01; // bit 0: voltage alarm
+    const iMax = Math.max(st.I[0], st.I[1], st.I[2]);
+    if (iMax > ALARM_I_THRESHOLD) alarmByte |= 0x02; // bit 1: current alarm (invented threshold, see above)
     this.ram[0x027e >> 1] = alarmByte;
   }
 

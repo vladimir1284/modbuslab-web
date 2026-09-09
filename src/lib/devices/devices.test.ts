@@ -122,6 +122,39 @@ describe('Analyzer Virtual Carlo Gavazzi WM14', () => {
     expect(resTid).toBe(0x00ab);
   });
 
+  it('sets the current alarm bit (bit 1 of 0x027E) when phase current exceeds the threshold', () => {
+    const process = new PhysicalProcess();
+    process.state.V = [220, 220, 220];
+    process.state.I = [25, 25, 25]; // over the ALARM_I_THRESHOLD = 20 A picked for this lab
+    const analyzer = new AnalyzerWm14(process);
+    analyzer.updateRamFromProcess(Date.now());
+
+    const res = analyzer.readExceptionStatus() as Uint8Array;
+    expect(res[1] & 0x02).toBe(0x02);
+  });
+
+  it('computes block-window demand averages for the dmd registers (§5.2, simplified)', () => {
+    const process = new PhysicalProcess();
+    process.state.V = [220, 220, 220];
+    process.state.I = [5, 5, 5];
+    process.state.phi = [0, 0, 0];
+    const analyzer = new AnalyzerWm14(process);
+
+    const t0 = 1_000_000;
+    analyzer.updateRamFromProcess(t0); // opens the demand window; no block has closed yet
+
+    const before = analyzer.readHoldingRegisters(0x02b0, 1) as Uint8Array;
+    const beforeVal = new DataView(before.buffer, before.byteOffset, before.byteLength).getUint16(2, false);
+    expect(beforeVal).toBe(0);
+
+    analyzer.updateRamFromProcess(t0 + 15 * 60000); // P_int default = 15 min -> closes the block
+
+    const after = analyzer.readHoldingRegisters(0x02b0, 1) as Uint8Array;
+    const afterVal = new DataView(after.buffer, after.byteOffset, after.byteLength).getUint16(2, false);
+    // W dmd, type P∑: reg = P_W / (CT*VT). Steady 220V * 5A * 3 phases = 3300 W, CT=25, VT=1.
+    expect(afterVal).toBe(132);
+  });
+
   it('handles station address change correctly', () => {
     const process = new PhysicalProcess();
     const analyzer = new AnalyzerWm14(process);
