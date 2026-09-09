@@ -13,6 +13,7 @@
   import { getVariant } from '$lib/lab/variants.js';
   import { getCodec } from '$lib/modbus/codec.js';
   import { parsePdu } from '$lib/modbus/pdu.js';
+  import Logo from '$lib/components/Logo.svelte';
   import type { CodecName, Exchange } from '$lib/modbus/types.js';
   import { DeviceClient } from '$lib/worker/client.js';
 
@@ -300,7 +301,7 @@
 <div class="min-h-screen bg-gray-100 flex flex-col">
   <header class="bg-indigo-900 text-white p-4 shadow-md flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <h1 class="text-xl font-extrabold tracking-tight">ModbusLab Web</h1>
+      <Logo size="md" variant="dark" />
       <span class="bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1 rounded font-mono border border-indigo-700">
         Estudiante nº {listNumber} · Variante {variant.n}
       </span>

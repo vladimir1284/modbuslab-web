@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Logo from '$lib/components/Logo.svelte';
   import { loadSession, type LabState } from '$lib/lab/log.js';
   import { generateMarkdownReport } from '$lib/lab/report.js';
 
@@ -27,9 +28,12 @@
 
 <main class="max-w-4xl mx-auto py-8 px-4 space-y-6">
   <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-800">Vista Previa del Informe</h1>
-      <p class="text-xs text-gray-500">Generado a partir de la sesión activa del laboratorio</p>
+    <div class="flex items-center gap-4">
+      <Logo size="md" variant="light" />
+      <div class="border-l border-gray-300 pl-4">
+        <h1 class="text-xl font-bold text-gray-800">Vista Previa del Informe</h1>
+        <p class="text-xs text-gray-500">Generado a partir de la sesión activa del laboratorio</p>
+      </div>
     </div>
 
     <div class="flex items-center gap-3">

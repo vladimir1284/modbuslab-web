@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Logo from '$lib/components/Logo.svelte';
   import { getVariant } from '$lib/lab/variants.js';
 
   let listNumber = $state(1);
@@ -24,7 +25,10 @@
 
 <main class="max-w-2xl mx-auto py-12 px-4 space-y-6">
   <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 text-center space-y-4">
-    <h1 class="text-3xl font-extrabold text-indigo-900 tracking-tight">ModbusLab Web</h1>
+    <div class="flex justify-center pb-2">
+      <Logo size="xl" variant="light" />
+    </div>
+
     <p class="text-sm text-gray-600 max-w-lg mx-auto">
       Laboratorio virtual de protocolo Modbus para PLC LS Master-K120S y Analizador de Redes Carlo Gavazzi WM14.
     </p>
