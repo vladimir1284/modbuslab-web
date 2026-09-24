@@ -48,6 +48,24 @@ describe('PLC Virtual Master-K120S', () => {
     const res = plc.writeSingleRegister(0x4000, 0x1234);
     expect(res).toBe(0x02);
   });
+
+  it('initializes inputs in a randomized state and supports re-randomization', () => {
+    const plc = new PlcMasterK();
+    const inputs1 = Array.from({ length: plc.config.inputCount }, (_, i) => plc.getInputBit(i));
+    const hasTrue1 = inputs1.some((b) => b);
+    const hasFalse1 = inputs1.some((b) => !b);
+
+    expect(hasTrue1).toBe(true);
+    expect(hasFalse1).toBe(true);
+
+    plc.randomizeInputs();
+    const inputs2 = Array.from({ length: plc.config.inputCount }, (_, i) => plc.getInputBit(i));
+    const hasTrue2 = inputs2.some((b) => b);
+    const hasFalse2 = inputs2.some((b) => !b);
+
+    expect(hasTrue2).toBe(true);
+    expect(hasFalse2).toBe(true);
+  });
 });
 
 describe('Analyzer Virtual Carlo Gavazzi WM14', () => {

@@ -57,6 +57,10 @@ export class DeviceClient {
     return this.send({ t: 'snapshot' });
   }
 
+  randomizeInputs(): Promise<WorkerRes> {
+    return this.send({ t: 'randomizeInputs' });
+  }
+
   terminate(): void {
     this.worker?.terminate();
     this.worker = null;

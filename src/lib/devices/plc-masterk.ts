@@ -68,6 +68,22 @@ export class PlcMasterK implements SlaveHandler {
       const isReadOnly = i === 4; // Area F is read-only
       this.areas.set(i, new AreaMemory(1024, isReadOnly));
     }
+    this.randomizeInputs();
+  }
+
+  randomizeInputs(): void {
+    for (let i = 0; i < this.config.inputCount; i++) {
+      this.setInputBit(i, Math.random() < 0.5);
+    }
+    if (this.config.inputCount >= 2) {
+      const allTrue = Array.from({ length: this.config.inputCount }, (_, i) => this.getInputBit(i)).every(Boolean);
+      const allFalse = Array.from({ length: this.config.inputCount }, (_, i) => this.getInputBit(i)).every((b) => !b);
+      if (allTrue) {
+        this.setInputBit(0, false);
+      } else if (allFalse) {
+        this.setInputBit(0, true);
+      }
+    }
   }
 
   private getArea(addr: number): { area: AreaMemory; offset: number } | null {

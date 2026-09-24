@@ -18,6 +18,7 @@
     } as PlcConfig,
     onToggleMonitor,
     onToggleInput,
+    onRandomizeInputs,
     onSaveConfig
   }: {
     inputs: boolean[];
@@ -26,6 +27,7 @@
     config: PlcConfig;
     onToggleMonitor: () => void;
     onToggleInput: (bit: number) => void;
+    onRandomizeInputs?: () => void;
     onSaveConfig: (cfg: PlcConfig) => void;
   } = $props();
 
@@ -40,6 +42,20 @@
     </div>
 
     <div class="flex items-center gap-2">
+      {#if onRandomizeInputs}
+        <button
+          type="button"
+          onclick={onRandomizeInputs}
+          class="px-3 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded border border-indigo-200 flex items-center gap-1 transition-colors"
+          title="Aleatorizar estado de las entradas"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Aleatorizar Entradas</span>
+        </button>
+      {/if}
+
       <button
         type="button"
         onclick={onToggleMonitor}
