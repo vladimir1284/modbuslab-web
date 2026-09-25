@@ -97,7 +97,7 @@
     return set;
   });
 
-  onMount(() => {
+  onMount(async () => {
     client = new DeviceClient();
 
     const sess = loadSession();
@@ -110,7 +110,29 @@
         historyRegisters = sess.history.filter((x: any) => x.tab === 'registers');
       }
     }
+
+    try {
+      const res = await client.snapshot();
+      if (res.t === 'snapshot' && res.data) {
+        if (Array.isArray(res.data.plcInputs)) plcInputs = res.data.plcInputs;
+        if (Array.isArray(res.data.plcOutputs)) plcOutputs = res.data.plcOutputs;
+      }
+    } catch {}
   });
+
+  function handleToggleInput(bit: number) {
+    const newVal = !plcInputs[bit];
+    plcInputs[bit] = newVal;
+    client?.setInput(bit, newVal);
+  }
+
+  async function handleRandomizeInputs() {
+    if (!client) return;
+    const res = await client.randomizeInputs();
+    if (res.t === 'snapshot' && res.data?.plcInputs) {
+      plcInputs = res.data.plcInputs;
+    }
+  }
 
   onDestroy(() => {
     if (plcMonitorInterval) clearInterval(plcMonitorInterval);
@@ -371,7 +393,8 @@
           monitorRunning={monitorPlcRunning}
           config={plcConfig}
           onToggleMonitor={togglePlcMonitor}
-          onToggleInput={(b) => client?.setInput(b, !plcInputs[b])}
+          onToggleInput={handleToggleInput}
+          onRandomizeInputs={handleRandomizeInputs}
           onSaveConfig={(cfg) => {
             plcConfig = cfg;
             client?.config({ plc: cfg });

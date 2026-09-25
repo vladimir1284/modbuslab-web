@@ -49,7 +49,12 @@ export interface ReqSnapshot {
   t: 'snapshot';
 }
 
-export type WorkerReq = ReqTx | ReqSetInput | ReqSetLoad | ReqConfig | ReqSnapshot;
+export interface ReqRandomizeInputs {
+  id: number;
+  t: 'randomizeInputs';
+}
+
+export type WorkerReq = ReqTx | ReqSetInput | ReqSetLoad | ReqConfig | ReqSnapshot | ReqRandomizeInputs;
 
 export type WorkerRes =
   | { id: number; t: 'rx'; frame: Uint8Array; elapsedMs: number }
@@ -113,6 +118,14 @@ self.onmessage = async (e: MessageEvent<WorkerReq>) => {
           vtRatio: bus.analyzer.getEepromWord(0x1082) / 10.0,
           ctRatio: bus.analyzer.getEepromWord(0x1084),
           station: bus.analyzer.stationNumber
+        };
+        self.postMessage({ id: req.id, t: 'snapshot', data } satisfies WorkerRes);
+        break;
+      }
+      case 'randomizeInputs': {
+        bus.plc.randomizeInputs();
+        const data = {
+          plcInputs: Array.from({ length: bus.plc.config.inputCount }, (_, i) => bus.plc.getInputBit(i))
         };
         self.postMessage({ id: req.id, t: 'snapshot', data } satisfies WorkerRes);
         break;
