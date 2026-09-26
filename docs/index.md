@@ -4,6 +4,16 @@ Bienvenido a la documentación oficial del **Laboratorio Virtual ModbusLab**.
 
 ModbusLab es un entorno interactivo de aprendizaje diseñado para la enseñanza del protocolo industrial **Modbus** (RTU, ASCII y TCP/MBAP). La aplicación simula dispositivos industriales reales (un PLC **LS Master-K120S** y un Analizador de Redes **Carlo Gavazzi WM14**) mediante **dispositivos virtuales** ejecutados localmente en un Web Worker dentro del navegador del usuario.
 
+<div style="text-align: center; margin: 2rem 0; padding: 2.5rem 1.5rem; background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%); border-radius: 12px; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15);">
+  <h2 style="color: white; margin-top: 0; font-size: 1.8rem; font-weight: 700; border-bottom: none;">🚀 Accede al Laboratorio Virtual</h2>
+  <p style="font-size: 1.15rem; margin-bottom: 1.8rem; opacity: 0.95; max-width: 650px; margin-left: auto; margin-right: auto;">
+    Inicia el simulador interactivo para trabajar con el PLC y el Analizador de Redes en tiempo real.
+  </p>
+  <a href="https://modbuslab.ladetec.com" target="_blank" rel="noopener noreferrer" style="font-size: 1.3rem; padding: 0.9rem 2.5rem; background-color: #00e676; color: #0d1117; font-weight: bold; border-radius: 8px; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(0,230,118,0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+    ⚡ IR AL LABORATORIO VIRTUAL (modbuslab.ladetec.com) ➔
+  </a>
+</div>
+
 ---
 
 ## 🎯 Objetivo Pedagógico
